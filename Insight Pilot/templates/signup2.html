@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Indira Foods - Sign Up</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<main class="page">
+
+    <!-- LEFT SIDE -->
+
+    <section class="left">
+
+        <!-- LOGO -->
+
+        <div class="brand">
+
+            <img
+                src="{{ url_for('static', filename='indira-logo.png') }}"
+                alt="Indira Foods"
+                class="real-logo">
+
+        </div>
+
+
+        <!-- SIGN UP CARD -->
+
+        <div class="card signup-card">
+
+            <h1>Sign up</h1>
+
+            <p class="welcome">
+                Create your Indira Foods account
+            </p>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('signup') }}">
+
+
+                <!-- FULL NAME -->
+
+                <label for="full_name">
+                    Full Name
+                </label>
+
+                <input
+                    id="full_name"
+                    name="full_name"
+                    type="text"
+                    placeholder="Enter your full name"
+                    autocomplete="name">
+
+
+                <!-- USERNAME -->
+
+                <label for="username">
+                    Username
+                </label>
+
+                <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Create your username"
+                    autocomplete="username"
+                    required>
+
+
+                <!-- EMAIL -->
+
+                <label for="email">
+                    Email
+                </label>
+
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Enter your email"
+                    autocomplete="email"
+                    required>
+
+
+                <!-- PASSWORD -->
+
+                <label for="password">
+                    Password
+                </label>
+
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="Create your password"
+                    autocomplete="new-password"
+                    required>
+
+
+                <!-- CONFIRM PASSWORD -->
+
+                <label for="confirm_password">
+                    Confirm Password
+                </label>
+
+                <input
+                    id="confirm_password"
+                    name="confirm_password"
+                    type="password"
+                    placeholder="Confirm your password"
+                    autocomplete="new-password"
+                    required>
+
+
+                <!-- ERROR -->
+
+                {% if error %}
+
+                <div class="error">
+                    {{ error }}
+                </div>
+
+                {% endif %}
+
+
+                <!-- SUCCESS -->
+
+                {% if success %}
+
+                <div class="success">
+                    {{ success }}
+                </div>
+
+                {% endif %}
+
+
+                <!-- BUTTON -->
+
+                <button
+                    class="login-button"
+                    type="submit">
+
+                    Create Account
+
+                </button>
+
+
+            </form>
+
+
+            <!-- LOGIN LINK -->
+
+            <div class="signup-link">
+
+                Already have an account?
+
+                <a href="{{ url_for('login') }}">
+                    Log in
+                </a>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- RIGHT SIDE -->
+
+    <section class="right">
+
+        <div class="image-background"></div>
+
+    </section>
+
+
+</main>
+
+</body>
+
+</html>

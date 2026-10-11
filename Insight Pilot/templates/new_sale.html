@@ -1,0 +1,337 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Sale | Insight Pilot AI</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .sale-page { max-width:1000px; margin:30px auto; padding:20px; }
+        .sale-card { background:white; padding:24px; border-radius:12px; box-shadow:0 4px 18px #0000000d; }
+        .sale-header { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
+        .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+        .field label { display:block; margin-bottom:7px; font-weight:600; }
+        .field input, .field select { box-sizing:border-box; width:100%; padding:11px; border:1px solid #cbd5e1; border-radius:7px; background:white; }
+        .items-table { width:100%; border-collapse:collapse; margin-top:15px; }
+        .items-table th, .items-table td { border-bottom:1px solid #e2e8f0; padding:10px 6px; text-align:left; }
+        .items-table select, .items-table input { box-sizing:border-box; width:100%; padding:9px 5px; border:1px solid #cbd5e1; border-radius:6px; }
+        .primary-btn, .secondary-btn, .remove-btn { display:inline-block; border:0; border-radius:7px; padding:11px 15px; cursor:pointer; text-decoration:none; }
+        .primary-btn { background:#174ea6; color:white; }
+        .secondary-btn { background:#e8eef8; color:#174ea6; }
+        .remove-btn { background:#fee2e2; color:#991b1b; }
+        .summary { margin:22px 0; padding:18px; background:#f8fafc; border-radius:8px; text-align:right; }
+        .summary p { margin:8px 0; }
+        .notice { padding:12px; margin-bottom:16px; border-radius:7px; }
+        .error { background:#fee2e2; color:#991b1b; }
+        .success { background:#dcfce7; color:#166534; }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+        @media(max-width:650px) { .form-grid { grid-template-columns:1fr; } .sale-card { padding:14px; } }
+    </style>
+</head>
+<body>
+<div class="sale-page">
+    <div class="sale-header">
+        <div>
+            <h1>Create New Sale</h1>
+            <p>Create a customer bill and update stock after successful saving.</p>
+        </div>
+        <a href="{{ url_for('sales') }}" class="secondary-btn">Back to Sales</a>
+    </div>
+
+    {% if message %}
+        <div class="notice {{ 'success' if message_type == 'success' else 'error' }}">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    {% if not products %}
+        <div class="notice error">No active products are available. Check your products table.</div>
+    {% endif %}
+
+    <form method="POST" id="saleForm" class="sale-card">
+        <div class="form-grid">
+            <div class="field">
+                <label for="customer_id">Customer</label>
+                <select name="customer_id" id="customer_id">
+                    <option value="">Walk-in Customer</option>
+                    {% for customer in customers %}
+                    <option value="{{ customer.id }}">
+                        {{ customer.customer_name }}
+                        {% if customer.phone %} — {{ customer.phone }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="field">
+                <label for="payment_method">Payment Method *</label>
+                <select name="payment_method" id="payment_method" required>
+                    <option value="Cash">Cash</option>
+                    <option value="UPI">UPI</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+
+        <h2>Bill Items</h2>
+        <div style="overflow-x:auto">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px">Product</th>
+                        <th style="min-width:100px">Unit Price</th>
+                        <th style="min-width:100px">Available</th>
+                        <th style="min-width:95px">Quantity</th>
+                        <th style="min-width:110px">Line Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+            </table>
+        </div>
+
+        <button type="button" class="secondary-btn" id="addItemBtn">
+            + Add Product
+        </button>
+
+        <div class="field" style="max-width:280px; margin:20px 0 0 auto">
+            <label for="discount">Discount (₹)</label>
+            <input type="number" id="discount" name="discount"
+                   value="0" min="0" step="0.01" required>
+        </div>
+
+        <div class="summary">
+            <p>Subtotal: <strong id="subtotal">₹0.00</strong></p>
+            <p>Discount: <strong id="discountPreview">₹0.00</strong></p>
+            <h2>Grand Total: <span id="grandTotal">₹0.00</span></h2>
+            <small>Final prices and stock are verified by the server.</small>
+        </div>
+
+        <div class="actions">
+            <button type="submit" class="primary-btn" {% if not products %}disabled{% endif %}>
+                Complete Sale
+            </button>
+            <a href="{{ url_for('sales') }}" class="secondary-btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+
+<script id="products-data" type="application/json">{{ products|tojson }}</script>
+
+<script>
+(() => {
+    const products = JSON.parse(
+        document.getElementById("products-data").textContent
+    );
+
+    const body = document.getElementById("itemsBody");
+    const discountInput = document.getElementById("discount");
+
+    function money(value) {
+        return "₹" + Number(value || 0).toFixed(2);
+    }
+
+    function addItem() {
+        const row = document.createElement("tr");
+
+        const productCell = document.createElement("td");
+        const select = document.createElement("select");
+        select.name = "product_id";
+        select.required = true;
+
+        const placeholder = document.createElement("option");
+        placeholder.value = "";
+        placeholder.textContent = "Select product";
+        select.appendChild(placeholder);
+
+        products.forEach(product => {
+            const option = document.createElement("option");
+            option.value = product.id;
+            option.textContent =
+                product.product_name + " (" + product.unit + ")";
+            option.dataset.price = product.selling_price;
+            select.appendChild(option);
+        });
+
+        productCell.appendChild(select);
+
+        const priceCell = document.createElement("td");
+        const priceText = document.createElement("span");
+        priceText.textContent = money(0);
+        priceCell.appendChild(priceText);
+
+        const stockCell = document.createElement("td");
+        const stockText = document.createElement("span");
+        stockText.textContent = "—";
+        stockCell.appendChild(stockText);
+
+        const quantityCell = document.createElement("td");
+        const quantity = document.createElement("input");
+        quantity.type = "number";
+        quantity.name = "quantity";
+        quantity.min = "1";
+        quantity.step = "1";
+        quantity.value = "1";
+        quantity.required = true;
+        quantityCell.appendChild(quantity);
+
+        const totalCell = document.createElement("td");
+        const totalText = document.createElement("span");
+        totalText.textContent = money(0);
+        totalCell.appendChild(totalText);
+
+        const removeCell = document.createElement("td");
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove-btn";
+        remove.textContent = "×";
+        remove.setAttribute("aria-label", "Remove product");
+
+        remove.addEventListener("click", () => {
+            row.remove();
+            calculateTotals();
+        });
+
+        removeCell.appendChild(remove);
+
+        row.append(
+            productCell,
+            priceCell,
+            stockCell,
+            quantityCell,
+            totalCell,
+            removeCell
+        );
+
+        body.appendChild(row);
+
+        function updateRow() {
+            const selected = select.options[select.selectedIndex];
+            const price = Number(selected.dataset.price || 0);
+
+            const product = products.find(
+                p => String(p.id) === select.value
+            );
+
+            stockText.textContent = product
+                ? Number(product.current_stock || 0)
+                : "—";
+
+            priceText.textContent = money(price);
+            totalText.textContent =
+                money(price * Number(quantity.value || 0));
+
+            calculateTotals();
+        }
+
+        select.addEventListener("change", updateRow);
+        quantity.addEventListener("input", updateRow);
+        updateRow();
+    }
+
+    function calculateTotals() {
+        let subtotal = 0;
+
+        body.querySelectorAll("tr").forEach(row => {
+            const select = row.querySelector('[name="product_id"]');
+            const quantity = row.querySelector('[name="quantity"]');
+
+            const product = products.find(
+                p => String(p.id) === select.value
+            );
+
+            const price = Number(product?.selling_price || 0);
+            const lineTotal = price * Number(quantity.value || 0);
+
+            row.querySelectorAll("td")[4].textContent = money(lineTotal);
+            subtotal += lineTotal;
+        });
+
+        const discount = Math.max(
+            0,
+            Number(discountInput.value || 0)
+        );
+
+        document.getElementById("subtotal").textContent = money(subtotal);
+        document.getElementById("discountPreview").textContent =
+            money(discount);
+
+        document.getElementById("grandTotal").textContent =
+            money(Math.max(0, subtotal - discount));
+    }
+
+    document.getElementById("addItemBtn").addEventListener(
+        "click", addItem
+    );
+
+    discountInput.addEventListener("input", calculateTotals);
+
+    document.getElementById("saleForm").addEventListener(
+        "submit", event => {
+            const rows = body.querySelectorAll("tr");
+
+            if (!rows.length) {
+                event.preventDefault();
+                alert("Add at least one product.");
+                return;
+            }
+
+            for (const row of rows) {
+                const productId =
+                    row.querySelector('[name="product_id"]').value;
+
+                const quantity = Number(
+                    row.querySelector('[name="quantity"]').value
+                );
+
+                if (
+                    !productId ||
+                    !Number.isInteger(quantity) ||
+                    quantity < 1
+                ) {
+                    event.preventDefault();
+                    alert(
+                        "Select a product and enter a valid quantity."
+                    );
+                    return;
+                }
+            }
+
+            const subtotal = rows.length
+                ? products.reduce((sum, product) => {
+                    const matchingRows = [...rows].filter(
+                        row =>
+                            row.querySelector('[name="product_id"]').value
+                            === String(product.id)
+                    );
+
+                    return sum + matchingRows.reduce(
+                        (rowSum, row) =>
+                            rowSum +
+                            Number(product.selling_price) *
+                            Number(
+                                row.querySelector('[name="quantity"]').value
+                            ),
+                        0
+                    );
+                }, 0)
+                : 0;
+
+            if (Number(discountInput.value) > subtotal) {
+                event.preventDefault();
+                alert("Discount cannot exceed the subtotal.");
+            }
+        }
+    );
+
+    if (products.length) {
+        addItem();
+    }
+})();
+</script>
+</body>
+</html>

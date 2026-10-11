@@ -1,0 +1,104 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bill | Insight Pilot AI</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .bill-page { max-width:800px; margin:30px auto; padding:20px; }
+        .bill-card { background:white; padding:30px; border:1px solid #e2e8f0; border-radius:12px; }
+        .bill-header { display:flex; justify-content:space-between; gap:15px; flex-wrap:wrap; border-bottom:2px solid #174ea6; padding-bottom:20px; }
+        .bill-table { width:100%; border-collapse:collapse; margin-top:25px; }
+        .bill-table th, .bill-table td { padding:12px 8px; border-bottom:1px solid #e2e8f0; text-align:left; }
+        .bill-table th:last-child, .bill-table td:last-child { text-align:right; }
+        .totals { margin:20px 0 0 auto; max-width:300px; }
+        .totals p { display:flex; justify-content:space-between; gap:15px; }
+        .grand-total { border-top:2px solid #174ea6; padding-top:12px; font-size:20px; font-weight:700; }
+        .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:22px; }
+        .btn { padding:10px 15px; border:0; border-radius:7px; text-decoration:none; cursor:pointer; background:#174ea6; color:white; }
+        .btn-light { background:#e8eef8; color:#174ea6; }
+        .empty { padding:30px; text-align:center; background:#fee2e2; border-radius:8px; }
+        @media print {
+            .actions { display:none; }
+            .bill-page { margin:0; padding:0; }
+            .bill-card { border:0; box-shadow:none; }
+            body { background:white; }
+        }
+    </style>
+</head>
+<body>
+<div class="bill-page">
+    {% if not sale %}
+        <div class="empty">
+            <h2>Bill not found</h2>
+            <p>This bill does not exist or could not be loaded.</p>
+            <a href="{{ url_for('sales') }}">Return to Sales</a>
+        </div>
+    {% else %}
+        <div class="bill-card">
+            <div class="bill-header">
+                <div>
+                    <h1>INDIRA FOODS</h1>
+                    <p>Sales Invoice</p>
+                    <small>Powered by Insight Pilot AI</small>
+                </div>
+                <div>
+                    <h2>Bill #{{ sale.id }}</h2>
+                    <p>Date: {{ sale.sale_date }}</p>
+                    <p>Payment: {{ sale.payment_method }}</p>
+                </div>
+            </div>
+
+            <h3>Customer Details</h3>
+            <p><strong>Name:</strong> {{ sale.customer_name or 'Walk-in Customer' }}</p>
+            {% if sale.phone %}
+                <p><strong>Phone:</strong> {{ sale.phone }}</p>
+            {% endif %}
+            {% if sale.address %}
+                <p><strong>Address:</strong> {{ sale.address }}</p>
+            {% endif %}
+
+            <table class="bill-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Unit</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product_name }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹{{ "%.2f"|format(item.unit_price) }}</td>
+                        <td>₹{{ "%.2f"|format(item.total_price) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div class="totals">
+                <p><span>Subtotal</span><strong>₹{{ "%.2f"|format(sale.subtotal or 0) }}</strong></p>
+                <p><span>Discount</span><strong>₹{{ "%.2f"|format(sale.discount or 0) }}</strong></p>
+                <p class="grand-total"><span>Grand Total</span><span>₹{{ "%.2f"|format(sale.grand_total or 0) }}</span></p>
+            </div>
+
+            <p style="text-align:center; margin-top:30px">Thank you for your purchase!</p>
+
+            <div class="actions">
+                <button class="btn" onclick="window.print()">Print Bill</button>
+                <a href="{{ url_for('new_sale') }}" class="btn">Create Another Sale</a>
+                <a href="{{ url_for('sales') }}" class="btn btn-light">Sales History</a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>

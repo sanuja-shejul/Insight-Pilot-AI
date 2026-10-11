@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales & Billing | Insight Pilot AI</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .sales-page { max-width: 1200px; margin: 30px auto; padding: 20px; }
+        .sales-header { display:flex; justify-content:space-between; align-items:center; gap:15px; flex-wrap:wrap; margin-bottom:24px; }
+        .sales-table { width:100%; border-collapse:collapse; background:white; }
+        .sales-table th, .sales-table td { padding:13px; border-bottom:1px solid #e5e7eb; text-align:left; }
+        .sales-table th { background:#f1f5f9; }
+        .sales-table tr:hover { background:#f8fafc; }
+        .primary-btn { display:inline-block; padding:11px 17px; background:#174ea6; color:white; border-radius:7px; text-decoration:none; border:none; cursor:pointer; }
+        .secondary-btn { display:inline-block; padding:8px 12px; background:#e8eef8; color:#174ea6; border-radius:6px; text-decoration:none; }
+        .table-wrap { overflow-x:auto; border-radius:10px; }
+        .notice { padding:12px; margin-bottom:16px; border-radius:7px; background:#fee2e2; color:#991b1b; }
+        .empty-state { text-align:center; padding:35px; color:#64748b; }
+        .amount { font-weight:700; white-space:nowrap; }
+    </style>
+</head>
+<body>
+<div class="sales-page">
+
+    <div class="sales-header">
+        <div>
+            <h1>Sales &amp; Billing</h1>
+            <p>Manage customer bills and payment records.</p>
+        </div>
+        <div>
+            <a href="{{ url_for('dashboard') }}" class="secondary-btn">Dashboard</a>
+            <a href="{{ url_for('new_sale') }}" class="primary-btn">+ New Sale</a>
+        </div>
+    </div>
+
+    {% if error %}
+        <div class="notice">{{ error }}</div>
+    {% endif %}
+
+    <div class="table-wrap">
+        <table class="sales-table">
+            <thead>
+                <tr>
+                    <th>Bill ID</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Payment</th>
+                    <th>Subtotal</th>
+                    <th>Discount</th>
+                    <th>Grand Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales_list %}
+                <tr>
+                    <td>#{{ sale.id }}</td>
+                    <td>{{ sale.sale_date }}</td>
+                    <td>{{ sale.customer_name or 'Walk-in Customer' }}</td>
+                    <td>{{ sale.payment_method }}</td>
+                    <td>₹{{ "%.2f"|format(sale.subtotal or 0) }}</td>
+                    <td>₹{{ "%.2f"|format(sale.discount or 0) }}</td>
+                    <td class="amount">₹{{ "%.2f"|format(sale.grand_total or 0) }}</td>
+                    <td>
+                        <a class="secondary-btn"
+                           href="{{ url_for('sale_bill', sale_id=sale.id) }}">
+                           View Bill
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="empty-state">
+                        No sales recorded yet. Select “New Sale” to create your first bill.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+</body>
+</html>

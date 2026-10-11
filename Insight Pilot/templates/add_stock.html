@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Stock | Indira Foods</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f7ef;
+            font-family: Arial, sans-serif;
+            color: #26352b;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #68756a;
+            margin: 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .nav-links a {
+            color: #276749;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        select,
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5c8;
+            border-radius: 8px;
+            background: white;
+            font-size: 15px;
+        }
+
+        select:focus,
+        input:focus {
+            outline: 2px solid #276749;
+            outline-offset: 1px;
+        }
+
+        .hint {
+            color: #68756a;
+            font-size: 13px;
+            margin-top: 7px;
+        }
+
+        .message {
+            padding: 13px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            color: #216e39;
+            background: #e0f5e5;
+        }
+
+        .error {
+            color: #a32121;
+            background: #ffe0e0;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #276749;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .submit-btn:hover {
+            background: #1e5038;
+        }
+
+        .submit-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 18px 12px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="container">
+
+    <header class="header">
+        <div>
+            <h1>Add / Update Stock</h1>
+            <p>Indira Foods — Inventory Management</p>
+        </div>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('inventory') }}">Inventory</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </nav>
+    </header>
+
+    <section class="card">
+        <h2>Record Incoming Stock</h2>
+
+        <p>
+            Select a product and enter the number of additional
+            250 gm packets received.
+        </p>
+
+        {% if message %}
+            <div class="message {{ message_type }}" role="status">
+                {{ message }}
+            </div>
+        {% endif %}
+
+        {% if products %}
+
+            <form method="POST" action="{{ url_for('add_stock_page') }}">
+
+                <div class="form-group">
+                    <label for="product_id">Select Product</label>
+
+                    <select id="product_id"
+                            name="product_id"
+                            required>
+                        <option value="">-- Choose a product --</option>
+
+                        {% for product in products %}
+                            <option value="{{ product.id }}"
+                                {% if request.form.get('product_id', '')|string == product.id|string %}
+                                    selected
+                                {% endif %}>
+                                {{ product.product_name }}
+                                — Current stock: {{ product.current_stock|int }}
+                                packets
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Additional Packets Received</label>
+
+                    <input
+                        type="number"
+                        id="quantity"
+                        name="quantity"
+                        min="1"
+                        step="1"
+                        required
+                        value="{{ request.form.get('quantity', '') }}"
+                        placeholder="e.g. 10">
+
+                    <p class="hint">
+                        Enter a positive whole number. This quantity
+                        will be added to the existing stock.
+                    </p>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    Add Stock
+                </button>
+
+            </form>
+
+        {% else %}
+
+            <div class="message error">
+                No products are available. Check your products table
+                and database connection.
+            </div>
+
+        {% endif %}
+    </section>
+
+</main>
+
+</body>
+</html>

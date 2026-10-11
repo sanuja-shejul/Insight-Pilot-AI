@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inventory Management | Indira Foods</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f7ef;
+            font-family: Arial, sans-serif;
+            color: #26352b;
+        }
+
+        .inventory-container {
+            max-width: 1250px;
+            margin: auto;
+            padding: 30px 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 30px;
+        }
+
+        .header p {
+            margin: 0;
+            color: #68756a;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #276749;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #68756a;
+            margin: 0 0 12px;
+        }
+
+        .stat-card p {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .table-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .table-card h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            text-align: left;
+            border-bottom: 1px solid #e8ece6;
+        }
+
+        th {
+            background: #eef4e8;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+        tbody tr:hover {
+            background: #f8faf6;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .normal {
+            background: #e0f5e5;
+            color: #216e39;
+        }
+
+        .low {
+            background: #fff0c2;
+            color: #805b00;
+        }
+
+        .out {
+            background: #ffe0e0;
+            color: #a32121;
+        }
+
+        .error-message {
+            padding: 14px;
+            border-radius: 8px;
+            color: #a32121;
+            background: #ffe0e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 25px;
+            color: #68756a;
+        }
+
+        .price {
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        @media (max-width: 800px) {
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .header h1 {
+                font-size: 25px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .inventory-container {
+                padding: 16px 10px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 14px;
+            }
+
+            .stat-card p {
+                font-size: 23px;
+            }
+
+            .table-card {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<main class="inventory-container">
+
+    <header class="header">
+        <div>
+            <h1>Inventory Management</h1>
+            <p>Indira Foods — Product Stock Overview</p>
+        </div>
+
+       <nav class="nav-links">
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('add_stock_page') }}">Add Stock</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+       </nav>
+    </header>
+
+    {% if error %}
+        <p class="error-message">{{ error }}</p>
+    {% endif %}
+
+    <section class="stats">
+
+        <article class="stat-card">
+            <h3>Total Products</h3>
+            <p>{{ total_products }}</p>
+        </article>
+
+        <article class="stat-card">
+            <h3>Total Packets</h3>
+            <p>{{ total_packets }}</p>
+        </article>
+
+        <article class="stat-card">
+            <h3>Low Stock Products</h3>
+            <p>{{ low_stock_count }}</p>
+        </article>
+
+        <article class="stat-card">
+            <h3>Out of Stock</h3>
+            <p>{{ out_of_stock_count }}</p>
+        </article>
+
+    </section>
+
+    <section class="table-card">
+        <h2>Product Stock Details</h2>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Packet Size</th>
+                        <th>Selling Price</th>
+                        <th>Current Stock</th>
+                        <th>Minimum Stock</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+
+                        <td>{{ product.product_name }}</td>
+
+                        <td>{{ product.category or "—" }}</td>
+
+                        <td>{{ product.unit or "250 gm packet" }}</td>
+
+                        <td class="price">
+                            ₹{{ "%.2f"|format(product.selling_price or 0) }}
+                        </td>
+
+                        <td>{{ product.current_stock|int }}</td>
+
+                        <td>{{ product.minimum_stock|int }}</td>
+
+                        <td>
+                            {% set stock = product.current_stock|int %}
+                            {% set minimum = product.minimum_stock|int %}
+
+                            {% if stock == 0 %}
+                                <span class="status out">
+                                    Out of Stock
+                                </span>
+                            {% elif stock <= minimum %}
+                                <span class="status low">
+                                    Low Stock
+                                </span>
+                            {% else %}
+                                <span class="status normal">
+                                    Normal
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="empty-message">
+                            No products found in the database.
+                            Check your MySQL products table.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+</body>
+</html>

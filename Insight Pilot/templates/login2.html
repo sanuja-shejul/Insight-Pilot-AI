@@ -1,0 +1,215 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Indira Foods - Login</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+    <main class="page">
+
+
+        <!-- =========================
+             LEFT SIDE
+        ========================== -->
+
+        <section class="left">
+
+            <!-- LOGO -->
+
+            <div class="brand">
+
+                <img
+                    src="{{ url_for('static', filename='indira-logo.png') }}"
+                    alt="Indira Foods Logo"
+                    class="real-logo">
+
+            </div>
+
+
+            <!-- =========================
+                 LOGIN CARD
+            ========================== -->
+
+            <div class="card">
+
+                <h1>
+                    Log in
+                </h1>
+
+
+                <p class="welcome">
+
+                    Welcome to the Indira Foods shop dashboard,
+                    <br>
+
+                    please sign in to follow along
+
+                </p>
+
+
+                <!-- LOGIN FORM -->
+
+                <form
+                    method="POST"
+                    action="{{ url_for('login') }}">
+
+
+                    <!-- USERNAME -->
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        placeholder="Enter your Username"
+                        autocomplete="username"
+                        required>
+
+
+                    <!-- PASSWORD -->
+
+                    <label for="password">
+                        Password
+                    </label>
+
+
+                    <div class="password-box">
+
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required>
+
+
+                        <!-- SHOW / HIDE PASSWORD -->
+
+                        <button
+                            type="button"
+                            id="togglePassword">
+
+                            Show
+
+                        </button>
+
+                    </div>
+
+
+                    <!-- ERROR MESSAGE -->
+
+                    {% if error %}
+
+                        <div class="error">
+
+                            {{ error }}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <!-- LOGIN BUTTON -->
+
+                    <button
+                        class="login-button"
+                        type="submit">
+
+                        Login
+
+                    </button>
+
+
+                </form>
+
+
+                <!-- SIGN UP -->
+
+                <div class="signup-link">
+
+                    Don't have an account?
+
+                    <a href="{{ url_for('signup') }}">
+
+                        Sign up
+
+                    </a>
+
+                </div>
+
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             RIGHT SIDE
+        ========================== -->
+
+        <section class="right">
+
+            <div class="image-background"></div>
+
+        </section>
+
+
+    </main>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================== -->
+
+    <script>
+
+        const password =
+            document.getElementById("password");
+
+        const toggle =
+            document.getElementById("togglePassword");
+
+
+        toggle.addEventListener("click", function () {
+
+            if (password.type === "password") {
+
+                password.type = "text";
+
+                toggle.textContent = "Hide";
+
+            } else {
+
+                password.type = "password";
+
+                toggle.textContent = "Show";
+
+            }
+
+        });
+
+    </script>
+
+
+</body>
+
+</html>
+```

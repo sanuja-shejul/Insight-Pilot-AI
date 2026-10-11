@@ -1,0 +1,149 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Indira Foods - Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .dashboard-card {
+            display: block;
+            box-sizing: border-box;
+            color: inherit;
+            text-decoration: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        a.dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        a.dashboard-card:focus-visible {
+            outline: 3px solid #276749;
+            outline-offset: 4px;
+        }
+
+        .dashboard-card .card-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #276749;
+            font-weight: bold;
+        }
+
+        .dashboard-card.coming-soon {
+            opacity: 0.85;
+        }
+    </style>
+</head>
+
+<body class="dashboard-page">
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div>
+            <div class="dashboard-brand">
+                INDIRA <span>FOODS</span>
+            </div>
+            <p>Shop Dashboard</p>
+        </div>
+
+        <a class="logout" href="{{ url_for('logout') }}">
+            Logout
+        </a>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="dashboard-content">
+
+        <h1>Welcome, {{ username }}!</h1>
+
+        <p>
+            You have successfully logged in to the Indira Foods dashboard.
+        </p>
+
+        <div class="dashboard-grid">
+
+            <!-- Products -->
+            <a href="{{ url_for('inventory') }}"
+               class="dashboard-card">
+                <h2>Products</h2>
+                <p>
+                    View your flour products, packet sizes,
+                    categories, and selling prices.
+                </p>
+                <span class="card-link">View Products →</span>
+            </a>
+
+            <!-- Inventory Management -->
+            <a href="{{ url_for('inventory') }}"
+               class="dashboard-card">
+                <h2>Inventory Management</h2>
+                <p>
+                    Monitor current stock, minimum stock levels,
+                    and stock alerts.
+                </p>
+                <span class="card-link">Manage Inventory →</span>
+            </a>
+
+            <!-- Add / Update Stock -->
+            <a href="{{ url_for('add_stock_page') }}"
+               class="dashboard-card">
+                <h2>Add / Update Stock</h2>
+                <p>
+                    Record incoming packets and increase
+                    product stock quantities.
+                </p>
+                <span class="card-link">Add Stock →</span>
+            </a>
+
+            <!-- Sales & Billing -->
+            <a href="{{ url_for('sales') }}"
+               class="dashboard-card">
+                <h2>Sales &amp; Billing</h2>
+                <p>
+                    Create customer sales, generate bills,
+                    record payments, and automatically update stock.
+                </p>
+                <span class="card-link">Open Sales &amp; Billing →</span>
+            </a>
+
+            <!-- Orders -->
+            <div class="dashboard-card coming-soon">
+                <h2>Orders</h2>
+                <p>
+                    View and manage customer orders.
+                </p>
+                <span class="card-link">Coming Soon</span>
+            </div>
+
+            <!-- Customers -->
+            <div class="dashboard-card coming-soon">
+                <h2>Customers</h2>
+                <p>
+                    Maintain customer information and order history.
+                </p>
+                <span class="card-link">Coming Soon</span>
+            </div>
+
+            <!-- Reports -->
+            <div class="dashboard-card coming-soon">
+                <h2>Reports &amp; Analytics</h2>
+                <p>
+                    Review stock levels, sales performance,
+                    and business reports.
+                </p>
+                <span class="card-link">Coming Soon</span>
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
