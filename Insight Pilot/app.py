@@ -1,14 +1,15 @@
+
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
 from flask import (
     Flask,
     render_template,
     request,
     redirect,
     url_for,
-    session
+    session,
+    flash
 )
 
 from werkzeug.security import (
@@ -17,26 +18,41 @@ from werkzeug.security import (
 )
 
 
+
 from database import (
     create_user,
     get_user_by_username,
+    get_dashboard_stats,
     get_inventory,
     add_stock,
     get_active_products,
     get_customers,
     create_sale,
     get_sales_history,
-    get_sale_details
+    get_sale_details,
+    delete_sale,
+    mark_sale_as_done,
+    get_low_stock_products,
+    get_all_products,
+    get_product_by_id,
+    create_product,
+    update_product,
+    deactivate_product
 )
 
 
+
+load_dotenv()
+
 app = Flask(__name__)
 
-# Change this to a private, random secret before deployment.
+# Load the secret key from .env
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
 if not app.secret_key:
-    raise RuntimeError("FLASK_SECRET_KEY is missing from .env")
+    raise RuntimeError(
+        "FLASK_SECRET_KEY is missing from your .env file."
+    )
 
 
 # =========================================================
@@ -85,7 +101,9 @@ def login():
         session["logged_in"] = True
         session["user_id"] = user["id"]
         session["username"] = user["username"]
-        session["full_name"] = user.get("full_name") or user["username"]
+        session["full_name"] = (
+            user.get("full_name") or user["username"]
+        )
         session["role"] = user.get("role") or "Staff"
 
         return redirect(url_for("dashboard"))
@@ -151,18 +169,44 @@ def signup():
 # DASHBOARD
 # =========================================================
 
+
+
 @app.route("/dashboard")
 def dashboard():
-
     if "username" not in session:
         return redirect(url_for("login"))
+
+    stats = get_dashboard_stats()
+
+    if stats is None:
+        stats = {
+            "today_revenue": 0,
+            "today_sales": 0,
+            "total_sales": 0,
+            "pending_amount": 0,
+            "pending_count": 0,
+            "chart_labels": [],
+            "chart_revenue": [],
+            "payment_counts": {
+                "Pending": 0,
+                "Done": 0
+            }
+        }
+
+    low_stock_products = get_low_stock_products()
+
+    if low_stock_products is None:
+        low_stock_products = []
 
     return render_template(
         "dashboard.html",
         username=session.get("username"),
         full_name=session.get("full_name"),
-        role=session.get("role")
+        role=session.get("role"),
+        stats=stats,
+        low_stock_products=low_stock_products
     )
+
 
 
 # =========================================================
@@ -176,8 +220,6 @@ def inventory():
         return redirect(url_for("login"))
 
     products = get_inventory()
-    print("Inventory data:", products)
-    print("Number of products:", len(products) if products else 0)
 
     if products is None:
         return render_template(
@@ -220,7 +262,7 @@ def inventory():
         out_of_stock_count=out_of_stock_count
     )
 
-       
+
 # =========================================================
 # ADD / UPDATE STOCK
 # =========================================================
@@ -235,23 +277,35 @@ def add_stock_page():
     message_type = None
 
     if request.method == "POST":
-        product_id = request.form.get("product_id", "").strip()
-        quantity_text = request.form.get("quantity", "").strip()
+
+        product_id_text = request.form.get(
+            "product_id", ""
+        ).strip()
+
+        quantity_text = request.form.get(
+            "quantity", ""
+        ).strip()
 
         try:
-            if not product_id or not quantity_text:
-                raise ValueError("Please select a product and enter a quantity.")
+            if not product_id_text or not quantity_text:
+                raise ValueError(
+                    "Please select a product and enter a quantity."
+                )
 
-            product_id = int(product_id)
+            product_id = int(product_id_text)
             quantity = int(quantity_text)
 
             if product_id <= 0:
                 raise ValueError("Please select a valid product.")
 
             if quantity <= 0:
-                raise ValueError("Quantity must be greater than zero.")
+                raise ValueError(
+                    "Quantity must be greater than zero."
+                )
 
-            success, result_message = add_stock(product_id, quantity)
+            success, result_message = add_stock(
+                product_id, quantity
+            )
 
             message = result_message
             message_type = "success" if success else "error"
@@ -264,7 +318,9 @@ def add_stock_page():
 
     if products is None:
         products = []
-        message = message or "Unable to load products. Check the database connection."
+        message = message or (
+            "Unable to load products. Check the database connection."
+        )
         message_type = "error"
 
     return render_template(
@@ -274,12 +330,14 @@ def add_stock_page():
         message_type=message_type
     )
 
+
 # =========================================================
-# SALES & BILLING
+# SALES HISTORY
 # =========================================================
 
 @app.route("/sales")
 def sales():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
@@ -299,8 +357,13 @@ def sales():
     )
 
 
+# =========================================================
+# CREATE NEW SALE
+# =========================================================
+
 @app.route("/sales/new", methods=["GET", "POST"])
 def new_sale():
+
     if "username" not in session:
         return redirect(url_for("login"))
 
@@ -308,16 +371,70 @@ def new_sale():
     message_type = None
 
     if request.method == "POST":
-        customer_text = request.form.get("customer_id", "").strip()
-        payment_method = request.form.get("payment_method", "").strip()
-        discount_text = request.form.get("discount", "0").strip()
+
+        customer_text = request.form.get(
+            "customer_id", ""
+        ).strip()
+
+        customer_name = request.form.get(
+            "customer_name", ""
+        ).strip()
+
+        customer_type = request.form.get(
+            "customer_type", "New"
+        ).strip()
+
+        customer_phone = request.form.get(
+            "customer_phone", ""
+        ).strip()
+
+        customer_address = request.form.get(
+            "customer_address", ""
+        ).strip()
+
+        payment_method = request.form.get(
+            "payment_method", ""
+        ).strip()
+
+        payment_status = request.form.get(
+            "payment_status", "Pending"
+        ).strip()
+
+        discount_text = request.form.get(
+            "discount", "0"
+        ).strip()
 
         product_ids = request.form.getlist("product_id")
         quantities = request.form.getlist("quantity")
 
         try:
-            customer_id = int(customer_text) if customer_text else None
+            # Customer selection:
+            # "new" = create a new customer
+            # number = existing customer
+            # blank = walk-in customer
 
+            if customer_text == "new":
+
+                customer_id = None
+
+                if not customer_name:
+                    raise ValueError(
+                        "Please enter the customer's name."
+                    )
+
+            elif customer_text:
+
+                customer_id = int(customer_text)
+
+                if customer_id <= 0:
+                    raise ValueError(
+                        "Please select a valid customer."
+                    )
+
+            else:
+                customer_id = None
+
+            # Validate product rows.
             if len(product_ids) != len(quantities):
                 raise ValueError("Invalid product rows.")
 
@@ -326,6 +443,7 @@ def new_sale():
             for product_text, quantity_text in zip(
                 product_ids, quantities
             ):
+
                 if not product_text and not quantity_text:
                     continue
 
@@ -339,37 +457,55 @@ def new_sale():
                     "quantity": int(quantity_text)
                 })
 
+            # Save customer details, sale, payment status,
+            # bill items, and stock changes.
             success, result_message, sale_id = create_sale(
                 customer_id=customer_id,
                 payment_method=payment_method,
                 discount=discount_text,
                 items=items,
-                created_by=session.get("user_id")
+                created_by=session.get("user_id"),
+                customer_name=(
+                    customer_name
+                    if customer_text == "new"
+                    else None
+                ),
+                customer_type=customer_type,
+                customer_phone=customer_phone,
+                customer_address=customer_address,
+                payment_status=payment_status
             )
 
             if success:
-                return redirect(url_for("sale_bill", sale_id=sale_id))
+                return redirect(
+                    url_for("sale_bill", sale_id=sale_id)
+                )
 
             message = result_message
             message_type = "error"
 
-        except (ValueError, TypeError):
-            message = (
-                "Please check the selected customer, products, "
-                "quantities, and discount."
+        except (ValueError, TypeError) as error:
+
+            message = str(error) or (
+                "Please check the customer, products, quantities, "
+                "payment details, and discount."
             )
+
             message_type = "error"
 
     products = get_active_products()
     customers = get_customers()
 
     if products is None or customers is None:
+
         products = products or []
         customers = customers or []
+
         message = message or (
             "Unable to load products or customers. "
             "Check your MySQL connection."
         )
+
         message_type = "error"
 
     return render_template(
@@ -381,8 +517,13 @@ def new_sale():
     )
 
 
+# =========================================================
+# VIEW / PRINT BILL
+# =========================================================
+
 @app.route("/sales/<int:sale_id>")
 def sale_bill(sale_id):
+
     if "username" not in session:
         return redirect(url_for("login"))
 
@@ -400,6 +541,193 @@ def sale_bill(sale_id):
         sale=sale,
         items=items
     )
+
+
+# =========================================================
+# MARK PAYMENT AS DONE
+# =========================================================
+
+@app.route(
+    "/sales/<int:sale_id>/mark-done",
+    methods=["POST"]
+)
+def mark_payment_done(sale_id):
+
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    success, message = mark_sale_as_done(sale_id)
+
+    flash(
+        message,
+        "success" if success else "error"
+    )
+
+    return redirect(url_for("sales"))
+
+
+# =========================================================
+# DELETE SALE
+# Only Owner can delete a sale.
+# Existing database function restores stock.
+# =========================================================
+
+@app.route("/sales/<int:sale_id>/delete", methods=["POST"])
+def delete_sale_route(sale_id):
+
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if session.get("role") != "Owner":
+        flash(
+            "Only the Owner can delete sales.",
+            "error"
+        )
+        return redirect(url_for("sales"))
+
+    success, message = delete_sale(sale_id)
+
+    flash(
+        message,
+        "success" if success else "error"
+    )
+
+    return redirect(url_for("sales"))
+
+
+@app.route("/products")
+def products():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    product_list = get_all_products()
+
+    if product_list is None:
+        flash("Unable to load products. Please check the database.", "error")
+        product_list = []
+
+    return render_template(
+        "products.html",
+        products=product_list,
+        username=session.get("username"),
+        full_name=session.get("full_name"),
+        role=session.get("role")
+    )
+
+
+@app.route("/products/new", methods=["GET", "POST"])
+def new_product():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        product_name = request.form.get("product_name", "").strip()
+        category = request.form.get("category", "").strip()
+        unit = request.form.get("unit", "").strip()
+
+        try:
+            selling_price = float(request.form.get("selling_price", ""))
+            minimum_stock = int(request.form.get("minimum_stock", ""))
+
+            if not product_name or not category or not unit:
+                raise ValueError
+
+            if selling_price < 0 or minimum_stock < 0:
+                raise ValueError
+
+            if not __import__("math").isfinite(selling_price):
+                raise ValueError
+
+        except (ValueError, TypeError):
+            flash(
+                "Enter valid product details, price, and minimum stock.",
+                "error"
+            )
+            return render_template("product_form.html", product=None)
+
+        success, message = create_product(
+            product_name,
+            category,
+            unit,
+            selling_price,
+            minimum_stock
+        )
+
+        flash(message, "success" if success else "error")
+
+        if success:
+            return redirect(url_for("products"))
+
+    return render_template("product_form.html", product=None)
+
+
+@app.route("/products/<int:product_id>/edit", methods=["GET", "POST"])
+def edit_product(product_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    product = get_product_by_id(product_id)
+
+    if product is None:
+        flash("Product not found or could not be loaded.", "error")
+        return redirect(url_for("products"))
+
+    if not product["is_active"]:
+        flash("Inactive products cannot be edited.", "error")
+        return redirect(url_for("products"))
+
+    if request.method == "POST":
+        product_name = request.form.get("product_name", "").strip()
+        category = request.form.get("category", "").strip()
+        unit = request.form.get("unit", "").strip()
+
+        try:
+            selling_price = float(request.form.get("selling_price", ""))
+            minimum_stock = int(request.form.get("minimum_stock", ""))
+
+            if not product_name or not category or not unit:
+                raise ValueError
+
+            if selling_price < 0 or minimum_stock < 0:
+                raise ValueError
+
+            if not __import__("math").isfinite(selling_price):
+                raise ValueError
+
+        except (ValueError, TypeError):
+            flash(
+                "Enter valid product details, price, and minimum stock.",
+                "error"
+            )
+            return render_template("product_form.html", product=product)
+
+        success, message = update_product(
+            product_id,
+            product_name,
+            category,
+            unit,
+            selling_price,
+            minimum_stock
+        )
+
+        flash(message, "success" if success else "error")
+
+        if success:
+            return redirect(url_for("products"))
+
+    return render_template("product_form.html", product=product)
+
+
+@app.route("/products/<int:product_id>/deactivate", methods=["POST"])
+def deactivate_product_route(product_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    success, message = deactivate_product(product_id)
+
+    flash(message, "success" if success else "error")
+    return redirect(url_for("products"))
+
 # =========================================================
 # LOGOUT
 # =========================================================
