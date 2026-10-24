@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management | Insight Pilot AI</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+    <style>
+        .products-page {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        .products-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .products-header h1 {
+            margin: 0 0 8px;
+        }
+
+        .products-header p {
+            margin: 0;
+            color: #64748b;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .product-btn {
+            display: inline-block;
+            padding: 9px 14px;
+            border: none;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .product-btn:hover {
+            opacity: 0.88;
+        }
+
+        .product-btn.secondary {
+            background: #475569;
+        }
+
+        .product-btn.danger {
+            background: #dc2626;
+        }
+
+        .product-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .product-table-wrap {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.07);
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        .product-table th,
+        .product-table td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .product-table th {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .product-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status.inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background: #f1f5f9;
+        }
+
+        .flash-message.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .flash-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-products {
+            text-align: center;
+            padding: 35px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="products-page">
+
+        <header class="products-header">
+            <div>
+                <h1>Product Management</h1>
+                <p>Manage your products, prices, and stock thresholds.</p>
+            </div>
+
+            <div class="product-actions">
+                <a href="{{ url_for('dashboard') }}"
+                   class="product-btn secondary">
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('new_product') }}"
+                   class="product-btn">
+                    + Add Product
+                </a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endwith %}
+
+        <div class="product-table-wrap">
+            {% if products %}
+                <table class="product-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Unit</th>
+                            <th>Selling Price</th>
+                            <th>Current Stock</th>
+                            <th>Minimum Stock</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ product.product_name }}</td>
+                                <td>{{ product.category }}</td>
+                                <td>{{ product.unit }}</td>
+                                <td>
+                                    ₹{{ "%.2f"|format(product.selling_price|float) }}
+                                </td>
+                                <td>{{ product.current_stock }}</td>
+                                <td>{{ product.minimum_stock }}</td>
+                                <td>
+                                    {% if product.is_active %}
+                                        <span class="status active">
+                                            Active
+                                        </span>
+                                    {% else %}
+                                        <span class="status inactive">
+                                            Inactive
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="product-actions">
+                                        {% if product.is_active %}
+                                            <a class="product-btn"
+                                               href="{{ url_for('edit_product', product_id=product.id) }}">
+                                                Edit
+                                            </a>
+
+                                            <form method="POST"
+                                                  action="{{ url_for('deactivate_product_route', product_id=product.id) }}"
+                                                  onsubmit="return confirm('Deactivate this product? Existing sales history will be preserved.');">
+                                                <button type="submit"
+                                                        class="product-btn danger">
+                                                    Deactivate
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span>—</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-products">
+                    <h3>No products found</h3>
+                    <p>Add your first product to get started.</p>
+                    <a href="{{ url_for('new_product') }}"
+                       class="product-btn">
+                        Add Product
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+    </main>
+</body>
+</html>
