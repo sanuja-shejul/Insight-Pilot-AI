@@ -1,7 +1,7 @@
 
 import os
 from dotenv import load_dotenv
-
+from datetime import date, timedelta, datetime
 from flask import (
     Flask,
     render_template,
@@ -37,7 +37,9 @@ from database import (
     get_product_by_id,
     create_product,
     update_product,
-    deactivate_product
+    deactivate_product,
+    get_sales_analytics,
+    get_business_insights
 )
 
 
@@ -727,6 +729,79 @@ def deactivate_product_route(product_id):
 
     flash(message, "success" if success else "error")
     return redirect(url_for("products"))
+
+
+
+# =========================================================
+# SALES ANALYTICS
+# =========================================================
+
+@app.route("/sales-analytics")
+def sales_analytics():
+
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    # Default date range: last 30 days.
+    end_date = date.today()
+    start_date = end_date - timedelta(days=29)
+
+    start_text = request.args.get(
+        "start_date",
+        start_date.isoformat()
+    )
+
+    end_text = request.args.get(
+        "end_date",
+        end_date.isoformat()
+    )
+
+    try:
+        start_date = date.fromisoformat(start_text)
+        end_date = date.fromisoformat(end_text)
+
+        if start_date > end_date:
+            raise ValueError
+
+    except ValueError:
+        flash("Please select a valid date range.", "error")
+        return redirect(url_for("sales_analytics"))
+
+    analytics = get_sales_analytics(
+        start_date,
+        end_date
+    )
+
+    if analytics is None:
+        analytics = {
+            "total_revenue": 0,
+            "total_bills": 0,
+            "average_bill": 0,
+            "daily_labels": [],
+            "daily_revenue": [],
+            "best_sellers": []
+        }
+
+    return render_template(
+        "sales_analytics.html",
+        analytics=analytics,
+        start_date=start_date.isoformat(),
+        end_date=end_date.isoformat()
+    )
+
+
+@app.route("/business-insights")
+def business_insights():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    data = get_business_insights()
+
+    return render_template(
+        "business_insights.html",
+        data=data
+    )
+
 
 # =========================================================
 # LOGOUT
