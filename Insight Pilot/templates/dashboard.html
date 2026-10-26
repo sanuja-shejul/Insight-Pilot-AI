@@ -1,149 +1,1984 @@
 
+
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Indira Foods - Dashboard</title>
+
+
+    <title>Dashboard | Insight Pilot AI</title>
+
+
 
     <link rel="stylesheet"
+
           href="{{ url_for('static', filename='style.css') }}">
 
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
+
     <style>
-        .dashboard-card {
-            display: block;
+
+        * {
+
             box-sizing: border-box;
-            color: inherit;
-            text-decoration: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+
         }
 
-        a.dashboard-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+
+
+        body {
+
+            margin: 0;
+
+            background: #f4f7fb;
+
+            color: #1f2937;
+
+            font-family: Arial, Helvetica, sans-serif;
+
         }
 
-        a.dashboard-card:focus-visible {
-            outline: 3px solid #276749;
-            outline-offset: 4px;
+
+
+        .dashboard-container {
+
+            max-width: 1400px;
+
+            margin: auto;
+
+            padding: 24px;
+
         }
 
-        .dashboard-card .card-link {
+
+
+        /* Dashboard header */
+
+
+
+        .dashboard-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 15px;
+
+            margin-bottom: 28px;
+
+        }
+
+
+
+        .dashboard-header h1 {
+
+            margin: 0 0 8px;
+
+            font-size: 30px;
+
+            color: #172554;
+
+        }
+
+
+
+        .dashboard-header p {
+
+            margin: 0;
+
+            color: #64748b;
+
+        }
+
+
+
+        .header-actions {
+
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+
+        }
+
+
+
+        .header-btn {
+
             display: inline-block;
-            margin-top: 10px;
-            color: #276749;
+
+            padding: 11px 16px;
+
+            border-radius: 8px;
+
+            text-decoration: none;
+
+            font-size: 14px;
+
             font-weight: bold;
+
         }
 
-        .dashboard-card.coming-soon {
-            opacity: 0.85;
+
+
+        .home-btn {
+
+            background: #e0e7ff;
+
+            color: #3730a3;
+
         }
+
+
+
+        .logout-btn {
+
+            background: #fee2e2;
+
+            color: #b91c1c;
+
+        }
+
+
+
+        /* KPI cards */
+
+
+
+        .stats-grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+
+            gap: 20px;
+
+            margin-bottom: 30px;
+
+        }
+
+
+
+        .stat-card {
+
+            padding: 23px;
+
+            background: #ffffff;
+
+            border-radius: 16px;
+
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+
+            border: 1px solid #e5e7eb;
+
+        }
+
+
+
+        .stat-label {
+
+            color: #64748b;
+
+            font-size: 14px;
+
+            margin-bottom: 13px;
+
+        }
+
+
+
+        .stat-card h2 {
+
+            margin: 0;
+
+            font-size: 27px;
+
+            overflow-wrap: anywhere;
+
+        }
+
+
+
+        .stat-description {
+
+            margin-top: 10px;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            line-height: 1.5;
+
+        }
+
+
+
+        .revenue-card {
+
+            border-top: 4px solid #2563eb;
+
+        }
+
+
+
+        .today-sales-card {
+
+            border-top: 4px solid #16a34a;
+
+        }
+
+
+
+        .total-sales-card {
+
+            border-top: 4px solid #7c3aed;
+
+        }
+
+
+
+        .pending-card {
+
+            border-top: 4px solid #ea580c;
+
+        }
+
+
+
+        .revenue-card h2 {
+
+            color: #2563eb;
+
+        }
+
+
+
+        .today-sales-card h2 {
+
+            color: #16a34a;
+
+        }
+
+
+
+        .total-sales-card h2 {
+
+            color: #7c3aed;
+
+        }
+
+
+
+        .pending-card h2 {
+
+            color: #ea580c;
+
+        }
+
+
+
+        /* Low-stock KPI */
+
+
+
+        .low-stock-kpi {
+
+            display: block;
+
+            padding: 23px;
+
+            background: #ffffff;
+
+            border: 1px solid #fecaca;
+
+            border-top: 4px solid #dc2626;
+
+            border-radius: 16px;
+
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.06);
+
+            color: #1f2937;
+
+            text-decoration: none;
+
+            transition: transform 0.2s, box-shadow 0.2s;
+
+        }
+
+
+
+        .low-stock-kpi:hover {
+
+            transform: translateY(-3px);
+
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+
+        }
+
+
+
+        .low-stock-kpi h2 {
+
+            margin: 0;
+
+            color: #dc2626;
+
+            font-size: 27px;
+
+            overflow-wrap: anywhere;
+
+        }
+
+
+
+        .low-stock-kpi .kpi-icon {
+
+            margin-bottom: 12px;
+
+            font-size: 25px;
+
+        }
+
+
+
+        .low-stock-kpi .stat-description {
+
+            color: #64748b;
+
+        }
+
+
+
+        .low-stock-kpi:focus-visible {
+
+            outline: 3px solid #2563eb;
+
+            outline-offset: 3px;
+
+        }
+
+
+
+        /* Charts */
+
+
+
+        .charts-grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            gap: 22px;
+
+            margin-bottom: 30px;
+
+        }
+
+
+
+        .chart-card {
+
+            min-width: 0;
+
+            padding: 22px;
+
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+
+        }
+
+
+
+        .chart-card h2 {
+
+            margin: 0 0 8px;
+
+            font-size: 19px;
+
+            color: #172554;
+
+        }
+
+
+
+        .chart-card p {
+
+            margin: 0 0 20px;
+
+            color: #64748b;
+
+            font-size: 13px;
+
+        }
+
+
+
+        .chart-container {
+
+            position: relative;
+
+            height: 290px;
+
+            width: 100%;
+
+        }
+
+
+
+        /* Low-stock alerts section */
+
+
+
+        .low-stock-section {
+
+            margin-bottom: 30px;
+
+            padding: 24px;
+
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 16px;
+
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+
+            scroll-margin-top: 20px;
+
+        }
+
+
+
+        .low-stock-header {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            flex-wrap: wrap;
+
+            gap: 12px;
+
+            margin-bottom: 20px;
+
+        }
+
+
+
+        .low-stock-header h2 {
+
+            margin: 0;
+
+            color: #172554;
+
+            font-size: 21px;
+
+        }
+
+
+
+        .low-stock-count {
+
+            display: inline-block;
+
+            padding: 7px 12px;
+
+            background: #fff0f0;
+
+            color: #b91c1c;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+        }
+
+
+
+        .low-stock-table-wrapper {
+
+            width: 100%;
+
+            overflow-x: auto;
+
+        }
+
+
+
+        .low-stock-table {
+
+            width: 100%;
+
+            min-width: 600px;
+
+            border-collapse: collapse;
+
+        }
+
+
+
+        .low-stock-table th,
+
+        .low-stock-table td {
+
+            padding: 14px 12px;
+
+            text-align: left;
+
+            border-bottom: 1px solid #e5e7eb;
+
+        }
+
+
+
+        .low-stock-table th {
+
+            background: #f8fafc;
+
+            color: #475569;
+
+            font-size: 13px;
+
+        }
+
+
+
+        .low-stock-table td {
+
+            color: #374151;
+
+            font-size: 14px;
+
+        }
+
+
+
+        .low-stock-table tbody tr:hover {
+
+            background: #f8fafc;
+
+        }
+
+
+
+        .stock-status {
+
+            display: inline-block;
+
+            padding: 6px 10px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+
+        }
+
+
+
+        .stock-status.out {
+
+            background: #fee2e2;
+
+            color: #b91c1c;
+
+        }
+
+
+
+        .stock-status.low {
+
+            background: #fef3c7;
+
+            color: #92400e;
+
+        }
+
+
+
+        .restock-link {
+
+            display: inline-block;
+
+            padding: 9px 12px;
+
+            background: #2563eb;
+
+            color: #ffffff;
+
+            text-decoration: none;
+
+            border-radius: 7px;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            white-space: nowrap;
+
+        }
+
+
+
+        .restock-link:hover {
+
+            background: #1d4ed8;
+
+        }
+
+
+
+        .no-low-stock {
+
+            padding: 25px 15px;
+
+            text-align: center;
+
+            background: #f0fdf4;
+
+            color: #15803d;
+
+            border-radius: 10px;
+
+        }
+
+
+
+        .no-low-stock p {
+
+            margin: 8px 0 0;
+
+            font-size: 14px;
+
+        }
+
+
+
+        /* Quick access navigation */
+
+
+
+        .section-heading {
+
+            margin: 0 0 18px;
+
+            color: #172554;
+
+            font-size: 22px;
+
+        }
+
+
+
+        .navigation-grid {
+
+            display: grid;
+
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+
+            gap: 18px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+
+        .navigation-card {
+
+            display: block;
+
+            padding: 22px;
+
+            background: #ffffff;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 14px;
+
+            text-decoration: none;
+
+            color: #1f2937;
+
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+
+            transition: transform 0.2s, box-shadow 0.2s;
+
+        }
+
+
+
+        a.navigation-card:hover {
+
+            transform: translateY(-3px);
+
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.09);
+
+        }
+
+
+
+        .navigation-card .nav-icon {
+
+            display: block;
+
+            margin-bottom: 12px;
+
+            font-size: 28px;
+
+        }
+
+
+
+        .navigation-card h3 {
+
+            margin: 0 0 9px;
+
+            font-size: 17px;
+
+        }
+
+
+
+        .navigation-card p {
+
+            margin: 0;
+
+            color: #64748b;
+
+            font-size: 13px;
+
+            line-height: 1.6;
+
+        }
+
+
+
+        .coming-soon {
+
+            opacity: 0.75;
+
+            cursor: default;
+
+        }
+
+
+
+        .coming-soon-label {
+
+            display: inline-block;
+
+            margin-top: 12px;
+
+            padding: 5px 9px;
+
+            border-radius: 20px;
+
+            background: #f1f5f9;
+
+            color: #64748b;
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+        }
+
+
+
+        .dashboard-footer {
+
+            margin-top: 30px;
+
+            padding: 18px 0;
+
+            border-top: 1px solid #e5e7eb;
+
+            text-align: center;
+
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            line-height: 1.8;
+
+        }
+
+
+
+        /* Responsive layout */
+
+
+
+        @media (max-width: 1000px) {
+
+            .stats-grid {
+
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            }
+
+
+
+            .charts-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+
+            .navigation-grid {
+
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+
+            }
+
+        }
+
+
+
+        @media (max-width: 600px) {
+
+            .dashboard-container {
+
+                padding: 15px;
+
+            }
+
+
+
+            .dashboard-header h1 {
+
+                font-size: 24px;
+
+            }
+
+
+
+            .stats-grid {
+
+                gap: 12px;
+
+            }
+
+
+
+            .stat-card,
+
+            .low-stock-kpi {
+
+                padding: 16px;
+
+            }
+
+
+
+            .stat-card h2,
+
+            .low-stock-kpi h2 {
+
+                font-size: 21px;
+
+            }
+
+
+
+            .charts-grid {
+
+                gap: 15px;
+
+            }
+
+
+
+            .chart-card {
+
+                padding: 16px;
+
+            }
+
+
+
+            .chart-container {
+
+                height: 240px;
+
+            }
+
+
+
+            .navigation-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
+
+            .low-stock-section {
+
+                padding: 16px;
+
+            }
+
+        }
+
     </style>
+
 </head>
 
-<body class="dashboard-page">
 
-    <!-- Header -->
+
+<body>
+
+
+
+<div class="dashboard-container">
+
+
+
+    <!-- Dashboard header -->
+
+
+
     <header class="dashboard-header">
+
         <div>
-            <div class="dashboard-brand">
-                INDIRA <span>FOODS</span>
-            </div>
-            <p>Shop Dashboard</p>
+
+            <h1>Insight Pilot AI</h1>
+
+
+
+            <p>
+
+                Welcome,
+
+                {{ full_name or username or "User" }}!
+
+                Here's your business overview.
+
+            </p>
+
         </div>
 
-        <a class="logout" href="{{ url_for('logout') }}">
-            Logout
-        </a>
+
+
+        <div class="header-actions">
+
+            <a href="{{ url_for('inventory') }}"
+
+               class="header-btn home-btn">
+
+                📦 Inventory
+
+            </a>
+
+
+
+            <a href="{{ url_for('logout') }}"
+
+               class="header-btn logout-btn">
+
+                Logout ↗
+
+            </a>
+
+        </div>
+
     </header>
 
-    <!-- Main Dashboard -->
-    <main class="dashboard-content">
 
-        <h1>Welcome, {{ username }}!</h1>
 
-        <p>
-            You have successfully logged in to the Indira Foods dashboard.
-        </p>
 
-        <div class="dashboard-grid">
 
-            <!-- Products -->
-            <a href="{{ url_for('inventory') }}"
-               class="dashboard-card">
-                <h2>Products</h2>
-                <p>
-                    View your flour products, packet sizes,
-                    categories, and selling prices.
-                </p>
-                <span class="card-link">View Products →</span>
-            </a>
+    <!-- Five KPI cards -->
 
-            <!-- Inventory Management -->
-            <a href="{{ url_for('inventory') }}"
-               class="dashboard-card">
-                <h2>Inventory Management</h2>
-                <p>
-                    Monitor current stock, minimum stock levels,
-                    and stock alerts.
-                </p>
-                <span class="card-link">Manage Inventory →</span>
-            </a>
 
-            <!-- Add / Update Stock -->
-            <a href="{{ url_for('add_stock_page') }}"
-               class="dashboard-card">
-                <h2>Add / Update Stock</h2>
-                <p>
-                    Record incoming packets and increase
-                    product stock quantities.
-                </p>
-                <span class="card-link">Add Stock →</span>
-            </a>
 
-            <!-- Sales & Billing -->
-            <a href="{{ url_for('sales') }}"
-               class="dashboard-card">
-                <h2>Sales &amp; Billing</h2>
-                <p>
-                    Create customer sales, generate bills,
-                    record payments, and automatically update stock.
-                </p>
-                <span class="card-link">Open Sales &amp; Billing →</span>
-            </a>
+    <section class="stats-grid">
 
-            <!-- Orders -->
-            <div class="dashboard-card coming-soon">
-                <h2>Orders</h2>
-                <p>
-                    View and manage customer orders.
-                </p>
-                <span class="card-link">Coming Soon</span>
-            </div>
 
-            <!-- Customers -->
-            <div class="dashboard-card coming-soon">
-                <h2>Customers</h2>
-                <p>
-                    Maintain customer information and order history.
-                </p>
-                <span class="card-link">Coming Soon</span>
-            </div>
 
-            <!-- Reports -->
-            <div class="dashboard-card coming-soon">
-                <h2>Reports &amp; Analytics</h2>
-                <p>
-                    Review stock levels, sales performance,
-                    and business reports.
-                </p>
-                <span class="card-link">Coming Soon</span>
+        <!-- Today's Revenue -->
+
+
+
+        <div class="stat-card revenue-card">
+
+            <div class="stat-label">Today's Revenue</div>
+
+
+
+            <h2>
+
+                ₹{{ "%.2f"|format(stats.today_revenue|default(0, true)|float) }}
+
+            </h2>
+
+
+
+            <div class="stat-description">
+
+                Revenue recorded today
+
             </div>
 
         </div>
 
-    </main>
+
+
+        <!-- Today's Sales -->
+
+
+
+        <div class="stat-card today-sales-card">
+
+            <div class="stat-label">Today's Sales</div>
+
+
+
+            <h2>
+
+                {{ stats.today_sales|default(0, true) }}
+
+            </h2>
+
+
+
+            <div class="stat-description">
+
+                Bills created today
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Total Sales -->
+
+
+
+        <div class="stat-card total-sales-card">
+
+            <div class="stat-label">Total Sales</div>
+
+
+
+            <h2>
+
+                {{ stats.total_sales|default(0, true) }}
+
+            </h2>
+
+
+
+            <div class="stat-description">
+
+                All recorded sales
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Pending Payments -->
+
+
+
+        <div class="stat-card pending-card">
+
+            <div class="stat-label">Pending Payments</div>
+
+
+
+            <h2>
+
+                ₹{{ "%.2f"|format(stats.pending_amount|default(0, true)|float) }}
+
+            </h2>
+
+
+
+            <div class="stat-description">
+
+                {{ stats.pending_count|default(0, true) }}
+
+                payment(s) awaiting completion
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Clickable Low-Stock KPI -->
+
+
+
+        <a href="#low-stock-alerts"
+
+           class="low-stock-kpi">
+
+
+
+            <div class="kpi-icon">⚠️</div>
+
+
+
+            <div class="stat-label">
+
+                Products Needing Restock
+
+            </div>
+
+
+
+            <h2>
+
+                {{ low_stock_products|length }}
+
+            </h2>
+
+
+
+            <div class="stat-description">
+
+                {% if low_stock_products|length > 0 %}
+
+                    Products at or below minimum stock · View alerts →
+
+                {% else %}
+
+                    No low-stock products · View details →
+
+                {% endif %}
+
+            </div>
+
+
+
+        </a>
+
+
+
+    </section>
+
+
+
+
+
+    <!-- Dashboard charts -->
+
+
+
+    <section class="charts-grid">
+
+
+
+        <!-- Revenue chart -->
+
+
+
+        <div class="chart-card">
+
+            <h2>📈 Revenue Overview</h2>
+
+
+
+            <p>Revenue trends over the last seven days</p>
+
+
+
+            <div class="chart-container">
+
+                <canvas id="revenueChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- Payment chart -->
+
+
+
+        <div class="chart-card">
+
+            <h2>💳 Payment Overview</h2>
+
+
+
+            <p>Comparison of completed and pending bills</p>
+
+
+
+            <div class="chart-container">
+
+                <canvas id="paymentChart"></canvas>
+
+            </div>
+
+        </div>
+
+
+
+    </section>
+
+
+
+
+
+    <!-- Low-stock alerts table -->
+
+
+
+    <section class="low-stock-section" id="low-stock-alerts">
+
+
+
+        <div class="low-stock-header">
+
+            <h2>⚠️ Low-Stock Alerts</h2>
+
+
+
+            <span class="low-stock-count">
+
+                {{ low_stock_products|length }}
+
+                product(s) need attention
+
+            </span>
+
+        </div>
+
+
+
+        {% if low_stock_products %}
+
+
+
+            <div class="low-stock-table-wrapper">
+
+
+
+                <table class="low-stock-table">
+
+
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Product</th>
+
+                            <th>Category</th>
+
+                            <th>Available Stock</th>
+
+                            <th>Minimum Stock</th>
+
+                            <th>Status</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+
+
+                    <tbody>
+
+
+
+                        {% for product in low_stock_products %}
+
+
+
+                            <tr>
+
+                                <td>
+
+                                    <strong>
+
+                                        {{ product.product_name }}
+
+                                    </strong>
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {{ product.category or "—" }}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {{ product.current_stock }}
+
+                                    {{ product.unit }}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {{ product.minimum_stock }}
+
+                                    {{ product.unit }}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    {% if product.current_stock|float <= 0 %}
+
+                                        <span class="stock-status out">
+
+                                            Out of Stock
+
+                                        </span>
+
+                                    {% else %}
+
+                                        <span class="stock-status low">
+
+                                            Low Stock
+
+                                        </span>
+
+                                    {% endif %}
+
+                                </td>
+
+
+
+                                <td>
+
+                                    <a
+
+                                        href="{{ url_for('add_stock_page') }}"
+
+                                        class="restock-link">
+
+                                        + Add Stock
+
+                                    </a>
+
+                                </td>
+
+                            </tr>
+
+
+
+                        {% endfor %}
+
+
+
+                    </tbody>
+
+
+
+                </table>
+
+
+
+            </div>
+
+
+
+        {% else %}
+
+
+
+            <div class="no-low-stock">
+
+                <strong>
+
+                    ✓ All active products are sufficiently stocked!
+
+                </strong>
+
+
+
+                <p>No low-stock alerts at the moment.</p>
+
+            </div>
+
+
+
+        {% endif %}
+
+
+
+    </section>
+
+
+
+
+
+    <!-- Quick access navigation -->
+
+
+
+    <section>
+
+        <h2 class="section-heading">Quick Access</h2>
+
+
+
+        <div class="navigation-grid">
+
+
+
+            <a href="{{ url_for('inventory') }}"
+
+               class="navigation-card">
+
+
+
+                <span class="nav-icon">📦</span>
+
+
+
+                <h3>Inventory</h3>
+
+
+
+                <p>
+
+                    View your products, available stock,
+
+                    and minimum stock levels.
+
+                </p>
+
+            </a>
+
+
+
+            <a href="{{ url_for('add_stock_page') }}"
+
+               class="navigation-card">
+
+
+
+                <span class="nav-icon">➕</span>
+
+
+
+                <h3>Add Stock</h3>
+
+
+
+                <p>
+
+                    Update inventory quantities when
+
+                    new stock arrives.
+
+                </p>
+
+            </a>
+
+
+
+            <a href="{{ url_for('sales') }}"
+
+               class="navigation-card">
+
+
+
+                <span class="nav-icon">🧾</span>
+
+
+
+                <h3>Sales & Billing</h3>
+
+
+
+                <p>
+
+                    Create sales bills, check payment
+
+                    statuses, and view sales history.
+
+                </p>
+
+            </a>
+
+
+
+
+
+
+
+<a href="{{ url_for('sales_analytics') }}"
+
+   class="navigation-card">
+
+
+
+    <span class="nav-icon">📊</span>
+
+
+
+    <h3>Sales Analytics</h3>
+
+
+
+    <p>
+
+        Analyze sales revenue, average bill value,
+
+        daily sales trends, and best-selling products.
+
+    </p>
+
+
+
+    <span class="coming-soon-label">
+
+        Open Sales Analytics →
+
+    </span>
+
+
+
+</a>
+
+
+
+
+
+
+
+            <div class="navigation-card coming-soon">
+
+                <span class="nav-icon">👥</span>
+
+
+
+                <h3>Customers</h3>
+
+
+
+                <p>
+
+                    Review customer information and purchase history.
+
+                </p>
+
+
+
+                <span class="coming-soon-label">
+
+                    Coming Soon
+
+                </span>
+
+            </div>
+
+
+
+                        <a href="{{ url_for('business_insights') }}"
+               class="navigation-card">
+
+                <span class="nav-icon">📊</span>
+
+                <h3>Business Reports</h3>
+
+                <p>
+                    Explore sales trends, revenue comparisons,
+                    inventory alerts, and business recommendations.
+                </p>
+
+                <span class="coming-soon-label">
+                    Open Business Reports →
+                </span>
+            </a>
+
+
+
+        </div>
+
+    </section>
+
+
+
+
+
+    <!-- Footer -->
+
+
+
+    <footer class="dashboard-footer">
+
+        Insight Pilot AI | Indira Foods
+
+        <br>
+
+        Smart Inventory and Sales Management
+
+    </footer>
+
+
+
+</div>
+
+
+
+
+
+<!-- Data passed from Flask to Chart.js -->
+
+
+
+<div
+
+    id="dashboard-data"
+
+    hidden
+
+    data-labels="{{ stats.chart_labels|default([], true)|tojson|forceescape }}"
+
+    data-revenue="{{ stats.chart_revenue|default([], true)|tojson|forceescape }}"
+
+    data-payments="{{ stats.payment_counts|default({'Pending': 0, 'Done': 0}, true)|tojson|forceescape }}">
+
+</div>
+
+
+
+
+
+<!-- Chart.js initialization -->
+
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+
+
+    const dataElement = document.getElementById("dashboard-data");
+
+
+
+    let labels = [];
+
+    let revenue = [];
+
+
+
+    let payments = {
+
+        Pending: 0,
+
+        Done: 0
+
+    };
+
+
+
+    try {
+
+        labels = JSON.parse(
+
+            dataElement.dataset.labels || "[]"
+
+        );
+
+
+
+        revenue = JSON.parse(
+
+            dataElement.dataset.revenue || "[]"
+
+        );
+
+
+
+        payments = JSON.parse(
+
+            dataElement.dataset.payments ||
+
+            '{"Pending":0,"Done":0}'
+
+        );
+
+
+
+    } catch (error) {
+
+        console.error(
+
+            "Could not read dashboard chart data:",
+
+            error
+
+        );
+
+    }
+
+
+
+    // Revenue chart
+
+
+
+    const revenueCanvas =
+
+        document.getElementById("revenueChart");
+
+
+
+    if (revenueCanvas && typeof Chart !== "undefined") {
+
+
+
+        new Chart(revenueCanvas, {
+
+            type: "line",
+
+
+
+            data: {
+
+                labels: labels,
+
+
+
+                datasets: [{
+
+                    label: "Revenue (₹)",
+
+                    data: revenue,
+
+
+
+                    borderColor: "#2563eb",
+
+                    backgroundColor: "rgba(37, 99, 235, 0.12)",
+
+
+
+                    borderWidth: 3,
+
+                    fill: true,
+
+                    tension: 0.35,
+
+
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 6
+
+                }]
+
+            },
+
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+
+
+                interaction: {
+
+                    intersect: false,
+
+                    mode: "index"
+
+                },
+
+
+
+                plugins: {
+
+                    legend: {
+
+                        display: true,
+
+                        position: "bottom"
+
+                    }
+
+                },
+
+
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+
+
+                        ticks: {
+
+                            callback: function (value) {
+
+                                return "₹" + value;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+
+    // Payment status chart
+
+
+
+    const paymentCanvas =
+
+        document.getElementById("paymentChart");
+
+
+
+    if (paymentCanvas && typeof Chart !== "undefined") {
+
+
+
+        new Chart(paymentCanvas, {
+
+            type: "doughnut",
+
+
+
+            data: {
+
+                labels: ["Pending", "Done"],
+
+
+
+                datasets: [{
+
+                    label: "Bills",
+
+
+
+                    data: [
+
+                        Number(payments.Pending || 0),
+
+                        Number(payments.Done || 0)
+
+                    ],
+
+
+
+                    backgroundColor: [
+
+                        "#f97316",
+
+                        "#16a34a"
+
+                    ],
+
+
+
+                    borderWidth: 2,
+
+                    borderColor: "#ffffff"
+
+                }]
+
+            },
+
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom"
+
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+
+});
+
+</script>
+
+
 
 </body>
+
 </html>
