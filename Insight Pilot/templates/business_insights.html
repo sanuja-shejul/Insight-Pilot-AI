@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Insights | Insight Pilot AI</title>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 { margin-bottom: 8px; }
+
+        .subtitle { color: #64748b; }
+
+        .back {
+            padding: 11px 16px;
+            background: #1d4ed8;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+
+        .stat, .insight {
+            background: white;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 3px 12px #0000000b;
+        }
+
+        .stat h3 {
+            margin: 0 0 12px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .stat p {
+            margin: 0;
+            font-size: 27px;
+            font-weight: bold;
+        }
+
+        .insights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
+
+        .insight {
+            border-left: 5px solid #94a3b8;
+        }
+
+        .insight.warning { border-left-color: #f59e0b; }
+        .insight.success { border-left-color: #10b981; }
+        .insight.info { border-left-color: #3b82f6; }
+
+        .insight h3 { margin-top: 0; }
+
+        .insight p {
+            color: #475569;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <header class="header">
+            <div>
+                <h1>Business Insights</h1>
+                <p class="subtitle">
+                    Sales trends and inventory recommendations
+                </p>
+            </div>
+            <a class="back" href="{{ url_for('dashboard') }}">
+                ← Back to Dashboard
+            </a>
+        </header>
+
+        <section class="stats">
+            <article class="stat">
+                <h3>Revenue — Last 7 Days</h3>
+                <p>₹{{ "%.2f"|format(data.current_revenue) }}</p>
+            </article>
+
+            <article class="stat">
+                <h3>Revenue — Previous 7 Days</h3>
+                <p>₹{{ "%.2f"|format(data.previous_revenue) }}</p>
+            </article>
+
+            <article class="stat">
+                <h3>Products Needing Restock</h3>
+                <p>{{ data.low_stock_count }}</p>
+            </article>
+        </section>
+
+        <h2>Recommendations</h2>
+
+        <section class="insights">
+            {% for insight in data.insights %}
+                <article class="insight {{ insight.type }}">
+                    <h3>{{ insight.title }}</h3>
+                    <p>{{ insight.message }}</p>
+                </article>
+            {% else %}
+                <p>No insights are available yet.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
